@@ -10,8 +10,8 @@ class BaseController extends Controller
     //
     public function __construct()
     {
-//        $this->middleware("auth:web",[
-//            "except"=>["login","index"]
+//        $this->middleware("auth",[
+//            "except"=>["login"]
 //        ]);
 //
 //        $this->middleware("guest:web",[

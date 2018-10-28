@@ -16,13 +16,24 @@
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
             <li class="header">MAIN NAVIGATION</li>
-            <li><a href="/shop/add"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
+            <li class="treeview">
+                <a href="#"><i class="fa fa-book"></i> <span>店铺管理</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="{{route("shop.menu.list")}}"><i class="fa fa-circle-o"></i> 菜单</a></li>
+                    <li><a href="{{route("shop.MenuCate.index")}}"><i class="fa fa-circle-o"></i> 商品分类</a></li>
+                    <li><a href="{{route("shop.menu.index")}}"><i class="fa fa-circle-o"></i> 菜单编辑</a></li>
+                </ul>
+            </li>
             <li class="treeview">
                 <a href="#">
                     <i class="fa fa-dashboard"></i> <span>个人中心</span>
                     <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
                 </a>
                 <ul class="treeview-menu">
                     <li><a href="#"><i class="fa fa-circle-o"></i> 个人资料</a></li>

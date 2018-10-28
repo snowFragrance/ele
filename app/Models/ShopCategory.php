@@ -8,4 +8,5 @@ class Shopcategory extends Model
 {
     //
     protected $fillable=["name","img","status","sort"];
+
 }

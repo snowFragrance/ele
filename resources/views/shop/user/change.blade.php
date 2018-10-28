@@ -30,6 +30,7 @@
             </div>
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
+                    <a class="btn btn-info" href="{{url()->previous()}}">返回</a>
                     <button type="submit" class="btn btn-success">修改</button>
                 </div>
             </div>

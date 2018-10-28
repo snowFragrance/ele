@@ -32,6 +32,10 @@ class UserController extends BaseController
 
     public function login(Request $request)
     {
+        if (Auth::user()){
+            return redirect()->intended(route("shop.index.index"));
+        }
+
         if ($request->isMethod("post")){
             //1. 验证
             $data = $this->validate($request, [

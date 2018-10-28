@@ -3,7 +3,7 @@
 @section("content")
 
     <div class="row">
-            @if($shop->shop_id == 0)
+            @if($shop[0]->shop_id == 0 )
 
                 <div class="col-lg-3 col-xs-6">
                     <!-- small box -->
@@ -59,7 +59,7 @@
                             </div>
                         @endif
 
-                    @if($shop[0]->status == 1)
+                    @if($shop[0]->status != 0)
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
                         <div class="small-box bg-aqua">

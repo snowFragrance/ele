@@ -10,14 +10,15 @@ class IndexController extends BaseController
 {
     public function index(){
         $id =Auth::id();
-        $id =$id?$id:4;
-        $user = User::find($id);
-        dd($user);
-        if ($user == []){
-            dd(11);
+        if ($id == null){
+            return redirect()->route("shop.user.login")->with("danger","您还没登录");
         }
-        $shop = $user->us($id);
-
+        $user = User::find($id);
+        if ($user->shop_id == 0){
+            $shop[0]=$user;
+        }else{
+            $shop = $user->us($id);
+        }
         return view("shop.index.index",compact("shop"));
     }
 

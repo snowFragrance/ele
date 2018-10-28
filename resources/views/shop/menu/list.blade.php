@@ -14,39 +14,28 @@
                 <div class="form-group">
                     <input type="text" class="form-control"  placeholder="请输入名称" name="keyword" value="{{request()->get('keyword')}}">
                 </div>
-                <button type="submit" class="btn btn-success">搜索</button>
+                <button type="submit" class="btn btn-info">搜索</button>
             </form>
         </div>
     </div>
 
     @foreach($cates as $cate)
-        @foreach($menus as $menu)
-        @if($menu->category_id == $cate->id)
-                    <ul class="sidebar-menu" data-widget="tree">
-                        <li class="treeview">
-                            <a href="#"><i class="fa fa-pie-chart"></i> <span>{{$cate->name}}</span>
-                                <span class="pull-right-container">
-                                    <i class="fa fa-angle-left pull-right"></i>
-                                </span>
-                            </a>
-                            <ul class="treeview-menu">
-                                <li><a href="{{route("shop.menu.list")}}"><i class="fa fa-circle-o"></i> {{$menu->goods_name}}</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-        @endif
-        @if($menu->category_id != $cate->id)
-                <ul class="sidebar-menu" data-widget="tree">
-                    <li class="treeview">
-                        <a href="#"><i class="fa fa-pie-chart"></i> <span>{{$cate->name}}</span>
-                            <span class="pull-right-container">
-                                    <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                    </li>
+        <ul class="sidebar-menu" data-widget="tree">
+            <li class="treeview">
+                <a href="#"><i class="fa fa-pie-chart"></i> <span>{{$cate->name}}</span>
+                    <span class="pull-right-container">
+                         <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    @foreach($menus as $menu)
+                        @if($menu->category_id == $cate->id  && $menu->status)
+                            <li><a href="{{route("shop.menu.list")}}"><i class="fa fa-circle-o"></i> {{$menu->goods_name}}</a></li>
+                        @endif
+                    @endforeach
                 </ul>
-        @endif
-        @endforeach
+            </li>
+        </ul>
     @endforeach
 
 @endsection

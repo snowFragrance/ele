@@ -15,6 +15,9 @@ class ShopController extends BaseController
     public function reg(Request $request)
     {
         $shops = Shopcategory::all();
+        if (Auth::id() == 4){
+            return redirect()->route("shop.user.login");
+        }
         if ($request->isMethod("post")){
             $data = $this->validate($request,[
                 "shop_category_id"=>"required",
@@ -27,7 +30,6 @@ class ShopController extends BaseController
             $data["notice"] = $request->post("notice");
             $data["discount"] = $request->post("discount");
             $file = $request->file("shop_img");
-            $data['shop_img']=$file->store("images","image");
             $data['brand']=$request->has("brand")?1:0;
             $data['on_time']=$request->has("on_time")?1:0;
             $data['fengniao']=$request->has("fengniao")?1:0;
@@ -35,8 +37,8 @@ class ShopController extends BaseController
             $data['piao']=$request->has("piao")?1:0;
             $data['zhun']=$request->has("zhun")?1:0;
             $data['status']=0;
-            $data['user_id']=Auth::user()->id;
-//            dd($data);
+            $data['user_id']=Auth::id();
+            $data['shop_img']=$file->store("images","image");
             Shop::create($data);
             $shop = DB::table('shops')
                 ->orderBy('id', 'desc')

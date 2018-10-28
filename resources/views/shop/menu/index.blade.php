@@ -18,7 +18,7 @@
         <tr>
             <td>{{$menu->id}}</td>
             <td>{{$menu->goods_name}}</td>
-            <td><img src="/{{$menu->goods_img}}" alt="" height="50"></td>
+            <td><img src="{{env("ALIYUN_OSS_URL").$menu->goods_img}}" alt="" height="50"></td>
             <td>{{$menu->category_id}}</td>
             <td>{{$menu->goods_price}}</td>
             <td>{{$menu->description}}</td>

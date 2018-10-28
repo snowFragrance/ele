@@ -25,6 +25,7 @@
 <div class="container-fluid">
     @include("admin.layouts._error")
     @include("admin.layouts._msg")
+    @include('vendor.ueditor.assets')
 @yield("content")
 
     {{--引入尾部--}}
@@ -37,5 +38,14 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+
+<!-- 实例化编辑器 -->
+<script type="text/javascript">
+    var ue = UE.getEditor('container');
+    ue.ready(function() {
+        ue.execCommand('serverparam', '_token', '{{ csrf_token() }}'); // 设置 CSRF token.
+    });
+</script>
+
 </body>
 </html>
