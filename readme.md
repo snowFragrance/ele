@@ -408,6 +408,8 @@
 
 ### 活动
 
+##### 后台
+
 - 创建模型
 
   ```sh
@@ -442,4 +444,185 @@
 
 - 修改继承，继承BaseController
 
-- 
+- 创建index方法
+
+  ```php
+  public function index(Request $request)
+      {
+          $url=$request->query();
+  //        dd($url);
+          $select =$request->get("select");
+          $keyword=$request->get("keyword");
+          //得到当前时间
+          $time = Carbon::now();
+          $activities = Activity::orderBy("id","desc");
+      	//关键字不为空
+          if ($keyword !== null){
+              $activities->where("title","like","%{$keyword}%");
+          }
+  
+          //活动进行中
+          if ($select == 1){
+              $activities->where("end_time",">",$time);
+          }
+  
+          //活动未开始
+          if ($select == 0){
+              $activities->where("start_time","<",$time);
+          }
+  
+          //活动已结束
+          if ($select == 2){
+              $activities->where("end_time",">",$time);
+          }
+          $activities=$activities->paginate(1);
+  //        dd($activities);
+          return view("admin.activity.index",compact("activities","url"));
+      }
+  ```
+
+- 将`@include('vendor.ueditor.assets')`引入到main
+
+- 将config/app.php中`'timezone' => 'UTC'`修改为`'timezone' => 'PRC'`
+
+- 将config/ueditor.php中`'disk' => 'public'`改为`'disk' => 'oss'`
+
+- 创建视图
+
+  ```html
+  @extends("admin.layouts.main")
+  @section("title","商家分类列表")
+  @section("content")
+  	{{--收索--}}
+      <div class="form-inline pull-left"><a href="{{route("admin.activity.add")}}" class="btn btn-success">添加</a></div>
+      <div class="row">
+          <div class="col-md-8 pull-right">
+              <form class="form-inline pull-right" method="get">
+                  <select name="select" id="" class="form-control">
+                       <option value="">所有</option>
+                       <option value="0">未开始</option>
+                       <option value="1">进行中</option>
+                       <option value="2">已结束</option>
+                  </select>
+                  <div class="form-group">
+                      <input type="text" class="form-control"  placeholder="请输入关键字" name="keyword" value="{{request()->get('keyword')}}">
+                  </div>
+                  <button type="submit" class="btn btn-info">搜索</button>
+              </form>
+          </div>
+      </div>
+  
+  	{{--显示视图--}}
+      <table class="table">
+          <tr>
+              <th>id</th>
+              <th>活动标题</th>
+              <th>活动详情</th>
+              <th>开始时间</th>
+              <th>结束时间</th>
+              <th>操作</th>
+          </tr>
+          @foreach($activities as $activity)
+          <tr>
+              <td>{{$activity->id}}</td>
+              <td>{{$activity->title}}</td>
+              <td>{!! substr("$activity->content",0,9) !!}</td>
+              <td>{{$activity->start_time}}</td>
+              <td>{{$activity->end_time}}</td>
+              <td>
+                  <a href="{{route("admin.activity.edit",$activity->id)}}" class="btn btn-success"><span class="glyphicon glyphicon-edit"></span></a>
+                  <a href="{{route("admin.activity.del",$activity->id)}}" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></a>
+              </td>
+          </tr>
+              @endforeach
+      </table>
+      {{$activities->appends($url)->links()}}
+  @endsection
+  ```
+
+- 做对应的增删改查
+
+  ```html
+  @extends("admin.layouts.main")
+  @section("title","商家分类列表")
+  @section("content")
+      <form class="form-horizontal" method="post" enctype="multipart/form-data">
+          {{csrf_field()}}
+          <div class="form-group">
+              <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
+              <div class="col-sm-10">
+                  <input type="text" class="form-control" id="inputEmail3" placeholder="标题" name="title" value="{{old("title")}}">
+              </div>
+          </div>
+          <div class="form-group">
+              <label for="inputPassword3" class="col-sm-2 control-label">详情</label>
+              <div class="col-sm-10">
+                  <script id="container" name="content" type="text/plain">{{old("content")}}</script>
+              </div>
+          </div>
+          <div class="form-group">
+              <label for="inputEmail3" class="col-sm-2 control-label">开始时间</label>
+              <div class="col-sm-10">
+                  <input type="datetime-local" class="form-control" placeholder="活动开始时间" name="start_time" value="{{old("start_time")}}">
+              </div>
+          </div>
+          <div class="form-group">
+              <label for="inputEmail3" class="col-sm-2 control-label">结束时间</label>
+              <div class="col-sm-10">
+                  <input type="datetime-local" class="form-control" id="inputEmail3" placeholder="活动结束时间" name="end_time" value="{{old("end_time")}}">
+              </div>
+          </div>
+          <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                  <a class="btn btn-info" href="{{url()->previous()}}">返回</a>
+                  <button type="submit" class="btn btn-success">添加</button>
+              </div>
+          </div>
+      </form>
+  
+  @endsection
+  ```
+
+
+
+#### 商户端
+
+- 设置路由
+
+- 创建控制器
+
+- 修改继承，创建index方法
+
+  ```php
+  public function index()
+      {
+      //获取当前时间
+          $time = Carbon::now();
+      //按条件查询
+          $activities = Activity::all()->where("end_time",">","$time");
+          return view("shop.activity.index",compact("activities"));
+      }
+  ```
+
+- 详情
+
+  ```php
+  public function xq($id)
+      {
+          $activity = Activity::find($id);
+          return view("shop.activity.xq",compact("activity"));
+      }
+  ```
+
+- 详情视图
+
+  ```html
+  @extends("admin.layouts.main")
+  @section("title","商家分类列表")
+  @section("content")
+      <h2>{{$activity->title}}</h2>
+      <h5>开始时间：{{$activity->start_time}} &emsp;结束时间：{{$activity->end_time}}</h5>
+      <pre>{!!$activity->content!!}</pre>
+      <a class="btn btn-info" href="{{url()->previous()}}">返回</a>
+  @endsection
+  ```
