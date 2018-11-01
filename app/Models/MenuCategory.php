@@ -8,4 +8,8 @@ class MenuCategory extends Model
 {
     //
     protected $fillable=["name","number","shop_id","description","is_selected"];
+
+    public function menus(){
+        return $this->hasMany(Menu::class,"category_id");
+    }
 }

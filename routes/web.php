@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
 
 Route::domain("admin.ele.com")->namespace("Admin")->group(function (){
