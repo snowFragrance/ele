@@ -638,6 +638,52 @@
 
 ## 实现步骤
 
+- 将文件夹复制到public目录下
+
+- 配置api.js文件和路由
+
+- 接口
+
+  ```php
+   public function detail()
+      {
+          $id = request()->get('id');
+          $shop = Shop::find($id);
+          $shop->shop_img=env("ALIYUN_OSS_URL").$shop->shop_img;
+          $shop->service_code = 4.6;
+          $shop->evaluate = [
+              [
+                  "user_id" => 12344,
+                  "username" => "w******k",
+                  "user_img" => "http=>//www.homework.com/images/slider-pic4.jpeg",
+                  "time" => "2017-2-22",
+                  "evaluate_code" => 1,
+                  "send_time" => 30,
+                  "evaluate_details" => "不怎么好吃"],
+              ["user_id" => 12344,
+                  "username" => "w******k",
+                  "user_img" => "http=>//www.homework.com/images/slider-pic4.jpeg",
+                  "time" => "2017-2-22",
+                  "evaluate_code" => 4.5,
+                  "send_time" => 30,
+                  "evaluate_details" => "很好吃"]
+          ];
+          $cates=MenuCategory::where("shop_id",$id)->get();
+          //当前分类有哪些商品
+          foreach ($cates as $k=>$cate){
+              //取当前分类下所有菜品
+              $goods=$cate->menus;
+              //拼图片路径
+              foreach ($goods as $kk=>$good){
+                  $goods[$kk]->goods_img=env("ALIYUN_OSS_URL").$good->goods_img;
+              }
+              //追加到分类中
+              $cates[$k]->goods_list=$goods;
+          }
+          $shop->commodity=$cates;
+          return $shop;
+      }
+  ```
 
 
 # Day06
@@ -653,3 +699,170 @@
 - 创建会员表
 - 短信验证码发送成功后,保存到redis,并设置有效期5分钟
 - 用户注册时,从redis取出验证码进行验证
+
+## 实现步骤
+
+##### 1.短信发送
+
+参考 <https://packagist.org/packages/mrgoon/aliyun-sms> 使用非Laravel框架方法
+
+##### 2.redis使用
+
+参考 <https://laravel-china.org/docs/laravel/5.5/redis/1331>
+
+```php
+public function sms(Request $request)
+    {
+        //接收参数：号码
+        $tel = $request->get("tel");
+
+        //生成随机数
+        $code = mt_rand(1000, 9999);
+
+        //将号码和随机数用redis保存
+        Redis::setex("tel_" . $tel, 60 * 5, $code);
+
+        //把验证码发给手机
+        //TODO
+
+        $data = [
+            "status" => true,
+            "message" => "获取短信验证码成功" . $code
+        ];
+        return $data;
+    }
+```
+
+##### 3.会员注册实现
+
+```php
+public function reg(Request $request)
+    {
+        //验证验证码是否匹配？
+        $values = $request->post();
+        if ($values['sms'] == Redis::get('tel_' . $values['tel'])) {
+            $values['password'] = bcrypt($values['password']);
+            if (Member::create($values)) {
+                $data = [
+                    "status" => "true",
+                    "message" => "注册成功"
+                ];
+            }else{
+                $data = [
+                    "status" => "false",
+                    "message" => "注册失败"
+                ];
+            }
+
+
+        } else {
+            $data = [
+                "status" => "false",
+                "message" => "验证码错误"
+            ];
+        }
+
+        return $data;
+    }
+```
+
+##### 4.用户登录
+
+```php
+public function login(Request $request)
+    {
+        //接收数据
+        $data = $request->post();
+        //判断用户名密码是否正确
+        $user = Member::where("username","{$data['name']}")->first();
+//        dd($user[0]['password']);
+        if ($user){
+            if (Hash::check("{$data['password']}","{$user['password']}")){
+                $data = [
+                    "status"=>"true",
+                    "message"=>"登录成功",
+                    "user_id"=>$user["id"],
+                    "username"=>$data["name"]
+                ];
+            }else{
+                $data = [
+                    "status"=>"false",
+                    "message"=>"密码错误",
+                ];
+            }
+        }else{
+            $data = [
+                "status"=>"false",
+                "message"=>"账号有误",
+            ];
+        }
+        return $data;
+    }
+```
+
+##### 5.忘记密码
+
+```php
+public function forget(Request $request)
+    {
+        $data = $request->post();
+        if ($data['sms'] == Redis::get('tel_' . $data['tel'])) {
+            $user = Member::where("tel","{$data['tel']}")->first();
+//            dd($user);
+            $user['password'] = bcrypt($data['password']);
+            if ($user->save()) {
+                $data = [
+                    "status" => "true",
+                    "message" => "重置成功"
+                ];
+            }else{
+                $data = [
+                    "status" => "false",
+                    "message" => "重置失败"
+                ];
+            }
+
+
+        } else {
+            $data = [
+                "status" => "false",
+                "message" => "验证码错误"
+            ];
+        }
+
+        return $data;
+    }
+```
+
+##### 6.用户详情
+
+```php
+ public function detail(Request $request)
+    {
+        //将登录用户找到
+        $user_id = $request->user_id;
+        //查询登录用户的数据
+        $data = Member::find($user_id);
+        return [
+            "status"=>"true",
+            "message"=>"查询成功",
+            "money"=>$data->money,
+            "jifen"=>$data->jifen
+        ];
+    }
+```
+
+
+
+
+
+# Day07
+
+### 开发任务
+
+接口开发
+
+- 用户地址管理相关接口
+- 购物车相关接口
+
+### 实现步骤

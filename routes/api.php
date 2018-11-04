@@ -37,3 +37,9 @@ Route::post("address/edit","Api\AddressController@edit");
 //购物车
 Route::post("cart/add","Api\CartController@add");
 Route::get("cart/cart","Api\CartController@cart");
+
+//订单
+Route::post("order/add","Api\OrderController@add");
+Route::get("order/order","Api\OrderController@order");
+Route::post("order/pay","Api\OrderController@pay");
+Route::get("order/list","Api\OrderController@list");
