@@ -852,6 +852,31 @@ public function forget(Request $request)
     }
 ```
 
+##### 7.修改密码
+
+```php
+public function change(Request $request)
+    {
+        $data = $request->post();
+//        dd($data);
+        $user = Member::find($data["id"]);
+        if (Hash::check("{$data['oldPassword']}","$user->password")){
+            $new = bcrypt($data['newPassword']);
+            $user->password = $new;
+            $user->save();
+            return [
+                "status"=> "true",
+                "message"=> "修改成功"
+            ];
+        }else{
+            return [
+                "status"=> "false",
+                "message"=> "旧密码错误"
+            ];
+        }
+    }
+```
+
 
 
 
@@ -866,3 +891,234 @@ public function forget(Request $request)
 - 购物车相关接口
 
 ### 实现步骤
+
+1. 
+
+1. 新增地址接口
+
+   ```php
+   public function add(Request $request)
+       {
+           $data = $request->post();
+           if (Address::create($data)){
+               return [
+                   "status" => "true",
+                   "message" => "添加成功"
+               ];
+           }else{
+               return [
+                   "status" => "false",
+                   "message" => "添加失败"
+               ];
+           }
+       }		
+   ```
+
+2. 地址列表接口
+
+   ```php
+   public function list(Request $request)
+       {
+           //得到用户id
+           $user_id = $request->get("user_id");
+           //找到用户对应的地址
+           $address = Address::all()->where("user_id",$user_id);
+           //返回数据
+           return $address;
+       }
+   ```
+
+3. 指定地址接口
+
+   ```php
+   public function address(Request $request)
+       {
+           //得到id
+           $id = $request->get("id");
+           //找到对应数据
+           $data = Address::find($id);
+           return $data;
+       }
+   ```
+
+
+
+# Day08
+
+## 开发任务
+
+接口开发
+
+- 订单接口(使用事务保证订单和订单商品表同时写入成功)
+- 密码修改和重置密码接口
+
+## 实现步骤
+
+
+
+# Day09
+
+### 开发任务
+
+#### 商户端
+
+- 订单管理[订单列表,查看订单,取消订单,发货]
+- 订单量统计[按日统计,按月统计,累计]（每日、每月、总计）
+- 菜品销量统计[按日统计,按月统计,累计]（每日、每月、总计）
+
+#### 平台
+
+- 订单量统计[按商家分别统计和整体统计]（每日、每月、总计）
+- 菜品销量统计[按商家分别统计和整体统计]（每日、每月、总计）
+- 会员管理[会员列表,查询会员,查看会员信息,禁用会员账号]
+
+### 实现步骤
+
+
+
+# Day10
+
+### 开发任务
+
+平台
+
+- 权限管理
+- 角色管理[添加角色时,给角色关联权限]
+- 管理员管理[添加和修改管理员时,修改管理员的角色]
+
+### 实现步骤
+
+1. 安装 `composer require spatie/laravel-permission -vvv`
+
+2. 生成数据迁移  `php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" --tag="migrations"` 
+
+   > 给权限表(permissions)增加intro字段
+
+3. 执行数据迁移  `php artisan migrate`
+
+4. 生成配置文件  `php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" --tag="config"`
+
+5. Admin模型中
+
+   ```php
+   class Admin extends Authenticatable
+   {
+       //
+       protected $fillable=["name","password","email"];
+   
+       use HasRoles;
+       protected $guard_name = 'admin'; // 使用任何你想要的守卫
+   }
+   ```
+
+6. 创建权限控制器,添加权限
+
+   ```
+   php artisan make:controller Admin/PerController
+   ```
+
+   ```php
+   public function add(Request $request)
+       {
+           if ($request->isMethod("post")){
+               //接收参数
+               $data = $request->post();
+               //设置守卫
+               $data['guard_name'] = 'admin';
+               //创建权限
+               Permission::create($data);
+           }
+   
+           return view('admin.per.add');
+       }
+   ```
+
+   ```html
+   @extends("admin.layouts.main")
+   @section("title","权限添加")
+   @section("content")
+       <form class="form-horizontal" action="" method="post">
+           {{csrf_field()}}
+           <div class="form-group">
+               <label class="col-sm-2 control-label">名称</label>
+               <div class="col-sm-10">
+                   <input type="text" name="name" class="form-control">
+               </div>
+           </div>
+   
+           <div class="form-group">
+               <label class="col-sm-2 control-label">描述</label>
+               <div class="col-sm-10">
+                   <input type="text" name="intro" class="form-control">
+               </div>
+           </div>
+           <div class="form-group">
+               <div class="col-sm-offset-2 col-sm-10">
+                   <button type="submit" class="btn btn-default">提交</button>
+               </div>
+           </div>
+       </form>
+   @endsection
+   ```
+
+7. 创建角色控制器,添加角色
+
+   ```php
+   public function add(Request $request)
+       {
+           if ($request->isMethod("post")){
+               //接收参数 并处理数据
+               $pers=$request->post('per');
+               //添加角色
+               $role=Role::create([
+                   "name"=>$request->post("name"),
+                   "guard_name"=>"admin"
+               ]);
+               //给角色同步权限
+               if ($pers){
+                   $role->syncPermissions($pers);
+               }
+           }
+           $pers = Permission::all();
+           //引入视图
+           return view("admin.role.add",compact('pers'));
+       }
+   ```
+
+   ```html
+   @extends("admin.layouts.main")
+   @section("title","权限添加")
+   @section("content")
+       <form class="form-horizontal" action="" method="post">
+           {{csrf_field()}}
+           <div class="form-group">
+               <label class="col-sm-2 control-label">姓名</label>
+               <div class="col-sm-10">
+                   <input type="text" name="name" class="form-control">
+               </div>
+           </div>
+   
+           <div class="form-group">
+               <label class="col-sm-2 control-label">权限</label>
+               <div class="col-sm-10">
+                   @foreach($pers as $per)
+                   <input type="checkbox" name="per[]" value="{{$per->id}}">{{$per->intro}}
+                       @endforeach
+               </div>
+           </div>
+           <div class="form-group">
+               <div class="col-sm-offset-2 col-sm-10">
+                   <button type="submit" class="btn btn-default">提交</button>
+               </div>
+           </div>
+       </form>
+   @endsection
+   ```
+
+8. 给用户指定权限
+
+   ```php
+   
+   ```
+
+

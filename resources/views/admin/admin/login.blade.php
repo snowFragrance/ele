@@ -1,5 +1,6 @@
 @extends("admin.layouts.main")
 
+@section("title",'登录')
 @section("content")
         <form class="form-horizontal" method="post">
             {{csrf_field()}}

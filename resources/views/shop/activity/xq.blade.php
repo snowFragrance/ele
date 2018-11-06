@@ -1,4 +1,4 @@
-@extends("admin.layouts.main")
+@extends("shop.layouts.main")
 @section("title","商家分类列表")
 @section("content")
     <h2>{{$activity->title}}</h2>
