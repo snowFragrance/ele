@@ -15,19 +15,6 @@ Route::get('/', function () {
     return view('index');
 });
 
-Route::get("test",function (){
-    $shopName="互联网学院";
-    $to = '31629311818';//收件人
-    $subject = $shopName.' 审核通知';//邮件标题
-    \Illuminate\Support\Facades\Mail::send(
-        'emails',//视图
-        compact("shopName"),//传递给视图的参数
-        function ($message) use($to, $subject) {
-            $message->to($to)->subject($subject);
-        }
-    );
-});
-
 Route::domain("admin.ele.com")->namespace("Admin")->group(function (){
     //region 商户分类
     Route::get("shopCate/index","ShopCategoryController@index")->name("admin.shopCate.index");
@@ -47,6 +34,7 @@ Route::domain("admin.ele.com")->namespace("Admin")->group(function (){
     //region 员工管理
     Route::get("admin/list","AdminController@list")->name("admin.admin.list");
     Route::any("admin/edit/{id}","AdminController@edit")->name("admin.admin.edit");
+    Route::get("admin/del/{id}","AdminController@del")->name("admin.admin.del");
     //endregion
 
     //region 商户管理
@@ -71,6 +59,28 @@ Route::domain("admin.ele.com")->namespace("Admin")->group(function (){
     Route::any("activity/del/{id}","ActivityController@del")->name("admin.activity.del");
     //endregion
 
+    //region 抽奖活动
+    Route::get("event/index","EventController@index")->name("admin.event.index");
+    Route::any("event/add","EventController@add")->name("admin.event.add");
+    Route::any("event/edit/{id}","EventController@edit")->name("admin.event.edit");
+    Route::get("event/del/{id}","EventController@del")->name("admin.event.del");
+    Route::get("event/lottery/{id}","EventController@lottery")->name("admin.event.lottery");
+    //endregion
+
+    //region 活动奖品
+    Route::get("prize/index","EventPrizeController@index")->name("admin.prize.index");
+    Route::any("prize/add","EventPrizeController@add")->name("admin.prize.add");
+    Route::any("prize/edit/{id}","EventPrizeController@edit")->name("admin.prize.edit");
+    Route::get("prize/del/{id}","EventPrizeController@del")->name("admin.prize.del");
+    //endregion
+
+    //region 活动报名
+    Route::get("enroll/index","EventUserController@index")->name("admin.enroll.index");
+    Route::any("enroll/add","EventUserController@add")->name("admin.enroll.add");
+    Route::any("enroll/edit/{id}","EventUserController@edit")->name("admin.enroll.edit");
+    Route::get("enroll/del/{id}","EventUserController@del")->name("admin.enroll.del");
+    //endregion
+
     //region 权限
     Route::any("per/add","PerController@add")->name("admin.per.add");
     Route::get("per/list","PerController@list")->name("admin.per.list");
@@ -80,6 +90,11 @@ Route::domain("admin.ele.com")->namespace("Admin")->group(function (){
     Route::any("role/edit/{id}","RoleController@edit")->name("admin.role.edit");
     Route::get("role/list","RoleController@list")->name("admin.role.list");
     Route::any("role/edit/{id}","RoleController@edit")->name("admin.role.edit");
+    //endregion
+
+    //region 导航
+    Route::any("admin/navy","NavController@navy")->name("admin.navy");
+    Route::any("admin/navt","NavController@navt")->name("admin.navt");
     //endregion
 });
 
@@ -117,6 +132,8 @@ Route::domain("shop.ele.com")->namespace("Shop")->group(function (){
     //region 活动
     Route::get("activity/index","ActivityController@index")->name("shop.activity.index");
     Route::get("activity/xq/{id}","ActivityController@xq")->name("shop.activity.xq");
+    Route::get("activity/event/{id}","ActivityController@event")->name("shop.activity.event");
+    Route::get("activity/enroll/{id}","ActivityController@enroll")->name("shop.activity.enroll");
     //endregion
 
     //region 订单
