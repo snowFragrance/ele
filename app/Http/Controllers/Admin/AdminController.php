@@ -29,7 +29,7 @@ class AdminController extends BaseController
             $admin=Admin::create($data);
             //给管理员添加角色并同步角色
             $admin->syncRoles($request->post('role'));
-            return redirect()->route("admin.admin.index")->with('success', '创建' . $admin->name . '成功');
+            return redirect()->route("admin.admin.list")->with('success', '创建' . $admin->name . '成功');
         }
         //得到所有角色
         $roles=Role::all();
@@ -44,9 +44,8 @@ class AdminController extends BaseController
                 "password" => "required"
             ]);
             if (Auth::guard("admin")->attempt($data,$request->has("remember"))){
-
                 //登录成功
-                return redirect()->intended(route("admin.shopCate.index"))->with("success","登录成功");
+                return redirect()->intended(route("admin.admin.index"))->with("success","登录成功");
             }else{
                 //登录失败
                 return redirect()->back()->withInput()->with("danger","账号或密码错误");
@@ -76,94 +75,93 @@ class AdminController extends BaseController
         return view("admin.admin.change",compact("admin"));
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $shops = Shop::all();
 
-        //今日订单
-        $now = date("Y-m-d");
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['num']=Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d')"),$now)
-                ->select(DB::raw("COUNT(*) as num"))
-                ->where("shop_id",$shop->id)
-                ->get();
+        $select =$request->get("now");
+        $keyword=$request->get("keyword");
+
+        //总订单
+        if ($select == 2){
+            foreach ($shops as $e=>$shop){
+                $shops[$e]['num']=Order::select(DB::raw("COUNT(*) as num"))
+                    ->where("shop_id",$shop->id)
+                    ->get();
+            }
+
+            //总金额
+            foreach ($shops as $r=>$shop){
+                $shops[$r]['money']=Order::where("status",">",0)
+                    ->select(DB::raw("SUM(total) as money"))
+                    ->where("shop_id",$shop->id)
+                    ->get();
+            }
+
+            //销量
+            foreach ($shops as $rr=>$shop){
+                $orders =  Order::where("status",">",0)
+                    ->where("shop_id",$shop->id)
+                    ->get();
+                $shops[$rr]["amount"] = 0;
+                foreach ($orders as $order){
+                    $date = OrderDetail::where("order_id",$order->id)->get();
+                    foreach ($date as $de){
+                        $shops[$rr]['amount'] += $de->amount;
+                    }
+                }
+            }
+            return view("admin/admin/index",compact("shops"));
         }
 
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['dm']=Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d')"),$now)
-                ->where("status",">",0)
-                ->select(DB::raw("SUM(total) as money"))
-                ->where("shop_id",$shop->id)
-                ->get();
+        //今日订单
+        if ($select == 0){
+            $now = date("Y-m-d");
+            $ymd = '%Y-%m-%d';
         }
 
         //月订单
-        $month = date("Y-m");
+        if ($select == 1){
+            $now = date("Y-m");
+            $ymd = '%Y-%m';
+        }
+
+        /**
+         * num:订单数量
+         * money：总金额
+         * amount:销量
+         */
+
         foreach ($shops as $k=>$shop){
-            $shops[$k]['month']=Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"),$month)
+            $shops[$k]['num']=Order::where(DB::raw("DATE_FORMAT(created_at, '".$ymd."')"),$now)
                 ->select(DB::raw("COUNT(*) as num"))
-                ->where("shop_id",$shop->id)
-                ->get();
-        }
-
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['mm']=Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"),$month)
-                ->where("status",">",0)
-                ->select(DB::raw("SUM(total) as mon"))
-                ->where("shop_id",$shop->id)
-                ->get();
-        }
-
-        //总订单
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['total']=Order::select(DB::raw("COUNT(*) as num"))
-                ->where("shop_id",$shop->id)
-                ->get();
-        }
-
-        //今日销量
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['qm']=Order::where("status",">",0)
-                ->select(DB::raw("SUM(total) as money"))
                 ->where("shop_id",$shop->id)
                 ->get();
         }
 
         foreach ($shops as $kk=>$shop){
-            $orders =  Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d')"),$now)
-                ->where("shop_id",$shop->id)
-                ->get();
-            $shops[$kk]["amount"] = 0;
-            foreach ($orders as $order){
-                $date = OrderDetail::where("order_id",$order->id)->get();
-                foreach ($date as $de){
-                    $shops[$kk]['amount'] += $de->amount;
-                }
-            }
-        }
-
-        //月销量
-        foreach ($shops as $k=>$shop){
-            $shops[$k]['wm']=Order::where("status",">",0)
+            $shops[$kk]['money']=Order::where(DB::raw("DATE_FORMAT(created_at, '".$ymd."')"),$now)
+                ->where("status",">",0)
                 ->select(DB::raw("SUM(total) as money"))
                 ->where("shop_id",$shop->id)
                 ->get();
         }
 
-//        foreach ($shops as $kk=>$shop){
-//            $orders =  Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"),$month)
-//                ->where("shop_id",$shop->id)
-//                ->get();
-//            $shops[$kk]["month"] = 0;
-//            foreach ($orders as $order){
-//                $date = OrderDetail::where("order_id",$order->id)->get();
-//                foreach ($date as $de){
-//                    $shops[$kk]['month'] += $de->amount;
-//                }
-//            }
-//        }
 
-//        dd($shops);
+
+        foreach ($shops as $rr=>$shop){
+            $orders =  Order::where(DB::raw("DATE_FORMAT(created_at, '".$ymd."')"),$now)
+                ->where("shop_id",$shop->id)
+                ->get();
+            $shops[$rr]["amount"] = 0;
+            foreach ($orders as $order){
+                $date = OrderDetail::where("order_id",$order->id)->get();
+                foreach ($date as $de){
+                    $shops[$rr]['amount'] += $de->amount;
+                }
+            }
+        }
+
         return view("admin/admin/index",compact("shops"));
     }
 
@@ -192,5 +190,12 @@ class AdminController extends BaseController
         $roles=Role::all();
 //        dd($roles);
         return view('admin.admin.edit',compact('admin','roles'));
+    }
+
+    public function del($id)
+    {
+        $admin = Admin::findOrFail($id);
+        $admin->delete();
+        return redirect()->route("admin.admin.list")->with('success', '删除成功');
     }
 }

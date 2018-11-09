@@ -37,7 +37,7 @@ class ActivityController extends BaseController
         if ($select == 2){
             $activities->where("end_time",">",$time);
         }
-        $activities=$activities->paginate(1);
+        $activities=$activities->paginate(10);
 //        dd($activities);
         return view("admin.activity.index",compact("activities","url"));
     }

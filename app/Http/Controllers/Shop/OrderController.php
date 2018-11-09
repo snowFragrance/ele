@@ -15,6 +15,9 @@ class OrderController extends BaseController
     //
     public function day()
     {
+        if (Auth::user() == null){
+            return redirect()->route('shop.user.login')->with('danger','请登录');
+        }
         $shop_id = Auth::user()->shop_id;
         $now = date("Y-m-d");
         $datas=Order::where(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d')"),$now)

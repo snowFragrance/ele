@@ -59,7 +59,18 @@ class ShopController extends Controller
     {
         $shop=Shop::find($id);
         $shop["status"]=1;
+        $user = User::find($shop->user_id);
         $shop->save();
+        $shopName="{$shop->shop_name}";
+        $to = "{$user->email}";//收件人
+        $subject = $shopName.' 审核通知';//邮件标题
+        \Illuminate\Support\Facades\Mail::send(
+            'emails.shop',//视图
+            compact("shopName"),//传递给视图的参数
+            function ($message) use($to, $subject) {
+                $message->to($to)->subject($subject);
+            }
+        );
         return redirect()->route("admin.shop.index")->with("success","审核成功");
     }
 

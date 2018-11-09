@@ -15,6 +15,7 @@
                 <td>{{str_replace(["[","]",'"'],"",json_encode($admin->getRoleNames(),JSON_UNESCAPED_UNICODE))}}</td>
                 <td>
                     <a href="{{route('admin.admin.edit',$admin->id)}}" class="btn btn-success">编辑</a>
+                    <a href="{{route('admin.admin.del',$admin->id)}}" class="btn btn-danger">删除</a>
                 </td>
             </tr>
         @endforeach

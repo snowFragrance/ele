@@ -124,6 +124,22 @@ class OrderController extends Controller
         $data['order_price'] = $order->total;
         $data['order_address'] = $order->provence . $order->city . $order->area . $order->detail_address;
         $data['goods_list'] = $order->goods;
+        //接收参数：号码
+        $tel = Member::find($order->user_id)->tel;
+//        dd($tel);
+        //生成随机数
+        $code = '下单成功';
+
+        //将号码和随机数用redis保存
+//        Redis::setex("tel_" . $tel, 60 * 5, $code);
+
+        //把验证码发给手机
+        //TODO
+
+        $data['d'] = [
+            "status" => true,
+            "message" => $code
+        ];
         return $data;
     }
 

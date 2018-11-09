@@ -1118,7 +1118,43 @@ public function change(Request $request)
 8. 给用户指定权限
 
    ```php
-   
+   public function reg(Request $request)
+       {
+           if ($request->isMethod("post")){
+               //验证
+               $data = $this->validate($request,[
+                   "name"=>"required",
+                   "password" => "required|min:6|confirmed",
+                   "email"=>"email"
+               ]);
+               $data['password'] = bcrypt($data['password']);
+               $admin=Admin::create($data);
+               //给管理员添加角色并同步角色
+               $admin->syncRoles($request->post('role'));
+               return redirect()->route("admin.admin.index")->with('success', '创建' . $admin->name . '成功');
+           }
+           //得到所有角色
+           $roles=Role::all();
+           return view("admin.admin.reg",compact("roles"));
+       }
    ```
 
+
+
+   # Day11
+
+   ### 开发任务
+
+   #### 平台
+
+   - 导航菜单管理
+   - 根据权限显示菜单
+   - 配置RBAC权限管理
+
+   #### 商家
+
+   - 发送邮件(商家审核通过,以及有订单产生时,给商家发送邮件提醒) 用户
+   - 下单成功时,给用户发送手机短信提醒
+
+   ### 实现步骤
 
